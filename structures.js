@@ -5,6 +5,7 @@ class Review {
     constructor(review_str, video_id) {
         this.updated = false;
         this.video_id = video_id;
+        this.id = null;
         this.review_str = review_str;
         this.no_upvotes = 0;
         this.no_downvotes = 0;
@@ -12,10 +13,14 @@ class Review {
     
     upvote() {
         this.no_upvotes += 1;
+        firestore_client.db.collection("videos").doc(this.video_id)
+        .collection("reviews").doc("no_upvotes") = this.no_upvotes;
     }
 
     downvote() {
         this.no_downvotes += 1;
+        firestore_client.db.collection("videos").doc(this.video_id)
+        .collection("reviews").doc("no_upvotes")
     }
 }
 
@@ -53,6 +58,17 @@ class Video {
         this.reviews.push(review);
         update();
     }
+
+    is_video_there(url) {
+        let a = firestore_client.db.collection("videos").get().then(snapshot => {
+            snapshot.docs.forEach(video => {
+                if (video.data()['url'] == url) {
+                    return true;
+                }
+            });
+            return false;
+        });
+    }    
 }
 
 class User {
@@ -63,6 +79,7 @@ class User {
         this.karma = 0;
     }
 }
+
 
 module.exports.Review = Review;
 module.exports.Video = Video;

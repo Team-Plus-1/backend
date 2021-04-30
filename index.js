@@ -10,23 +10,11 @@ function save_new() {
 }
 
 app.get('/api', (req, res) => {
-    res.send("hello world");
-});
+    if (req.data) {
 
-app.get('/check', (req, res) => {
-    global.msg = "";
-    let a = firestore_client.db.collection('videos').get().then(snapshot => {
-        snapshot.docs.forEach(video => {
-            console.log(video.data()['url']);
-            global.msg.concat(video.data()['url'])});
-    });
+    }
 
-    console.log(global.msg);
-    res.send("hey".concat(msg));
-});
-
-app.get('/review', (req, res) => {
-
+    res.json("hello world");
 });
 
 app.get('/update', (req, res) => {
