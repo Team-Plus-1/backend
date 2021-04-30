@@ -58,15 +58,39 @@ class Videos {
     }
 
     is_video_there(url) {
-        let a = firestore_client.db.collection("videos").get().then(snapshot => {
+        this.get_video_id(url);
+        if (this.url_is_present) {
+            return [true, this.id];
+        } else {
+            return [false, null];
+        }
+    }
+    
+    get_video_id(url) {
+            let a = firestore_client.db.collection("videos").get().then(snapshot => {
             snapshot.docs.forEach(video => {
-                if (video.data()['url'] == url) {
-                    return true;
+                if (video.data()["url"] == url) {
+                    let video_id = video.id;
+                    this.id = video_id;
+                    this.url_is_present = true;
                 }
             });
-            return false;
         });
-    }    
+        return this;
+    }
+
+    get_reports(video_id, callback) {
+        reports = [];
+        firestore_client.db.collection("videos").doc(video_id)
+        .collection("reports").get().then(snapshot => {
+            snapshot.docs.forEach(report => {
+                let report_string = report.data()['report_string'];
+                reports.push(report_string);
+            });
+            console.log(reports);
+            callback(reports);
+        });
+    }
 }
 
 class Users {

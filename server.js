@@ -5,6 +5,9 @@ const structures = require("./structures");
 const app = express();
 const port = 3000;
 
+let videos = structures.videos;
+let reports = structures.reports;
+
 function save_new() {
     let new_vid = structures.videos;
     new_vid.add_video("url");
@@ -20,23 +23,27 @@ function upvote() {
 JSON STRUCTURES requests that can be made to /api
 
 {
-    "action" : "check_website_reported",
+    "action" : "check_if_video_reported",
     "url": "http://<url>"
 } => {
-    "reply" : true/false
-}
-
-{
-    "action": "add_report",
-    "url": "http://<url>",
-    "report_string": "report" 
+    "reply" : true/false,
+    "data" : "tags"/null
 }
 
 {
     "action": "get_reports",
     "url": "http://<url>"
 } => {
-    "video_id": id
+    "reports": {
+        "report 1": {"report", num_upvote}
+    }
+}
+
+{
+    "action": "add_report",
+    "url": "http://<url>",
+    "report_string": "report" 
+    "user_name": username
 }
 
 {
@@ -54,13 +61,37 @@ JSON STRUCTURES requests that can be made to /api
 }
 */
 
-app.get('/api', (req, res) => {
-    if (req.data) {
-
+app.get('/api/check', (req, res) => {
+    const url = req.query.url;
+    console.log(`checking ${url}`);
+    let response = videos.is_video_there(url);
+    let url_is_there = response[0];
+    let id = response[1];
+    if (url_is_there) {
+        videos.get_reports(id, (reports) => {
+            console.log(reports);
+            res.json({
+                "reply": true,
+                "data": reports
+            });
+        });
+    } else {
+        res.json({
+            "reply": false,
+            "data": null
+        });
     }
-
-    res.json("hello world");
 });
+
+app.get('/test', (req, res) => {
+    let response = videos.is_video_there("url");
+
+    if (response[0]) {
+        res.json({"it's there": response[1]}); 
+    }
+    res.json({"helddo": "world"});
+});
+
 
 app.get('/upvote', (req, res) => {
     upvote();
