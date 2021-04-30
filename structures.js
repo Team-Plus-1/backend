@@ -1,62 +1,60 @@
 const firestore_client = require("./firestore_client");
 
 
-class Review {
-    constructor(review_str, video_id) {
-        this.updated = false;
-        this.video_id = video_id;
-        this.id = null;
-        this.review_str = review_str;
-        this.no_upvotes = 0;
-        this.no_downvotes = 0;
-    }
-    
-    upvote() {
-        this.no_upvotes += 1;
-        firestore_client.db.collection("videos").doc(this.video_id)
-        .collection("reviews").doc("no_upvotes") = this.no_upvotes;
+class Reports {
+    add_report(video_id, report) {
+        firestore_client.db.collection("videos").doc(video_id)
+        .collection("reports").add({
+            report_string: report,
+            num_upvotes: 0,
+            num_downvotes: 0,
+        }).then((docRef) => {
+            console.log(docRef.id);
+            return docRef.id;
+        }).catch((error) => {
+            console.log("error while adding video ", error);
+        });
     }
 
-    downvote() {
-        this.no_downvotes += 1;
-        firestore_client.db.collection("videos").doc(this.video_id)
-        .collection("reviews").doc("no_upvotes")
+    get_report(video_id, report_id) {
+        firestore_client.db.collection("videos").doc(video_id)
+        .collection("reports").doc(report_id).get().then((doc) => {
+            let data = doc.data();
+            return data;
+        });
+    }
+    
+    upvote(video_id, report_id) {
+        let current_report = firestore_client.db.collection("videos").doc(video_id)
+        .collection("reports").doc(report_id).get().then((doc) => {
+           let current_data = doc.data();
+           current_data.num_upvotes += 1;
+           let new_report = firestore_client.db.collection("videos").doc(video_id)
+           .collection("reports").doc(report_id).set(current_data);
+        });
+    }
+
+    downvote(video_id, report_id) {
+        let current_report = firestore_client.db.collection("videos").doc(video_id)
+        .collection("reports").doc(report_id).get().then((doc) => {
+           let current_data = doc.data();
+           current_data.num_downvotes += 1;
+           let new_report = firestore_client.db.collection("videos").doc(video_id)
+           .collection("reports").doc(report_id).set(current_data);
+        });
     }
 }
 
-class Video {
-    constructor(url) {
-        this.url = url;
-        this.reviews = [];
+class Videos {
+    add_video(url) {
         firestore_client.db.collection("videos").add({
-            url: this.url
+            url: url
         }).then((docRef) => {
-            global.id = docRef.id;
-            console.log(`global id inside this ${global.id}`);
+            console.log(docRef.id);
+            return docRef.id;
         }).catch((error) => {
-            console.log("error while adding video");
+            console.log("error while adding video ", error);
         });
-
-        console.log(`global id outside this ${global.id}`);
-        this.id = global.id;
-    }
-
-    get_id() {
-        return this.id;
-    }
-
-    update() {
-        this.reviews.forEach(review => {
-            if (review.updated != true) {
-                firestore_client.db.collection("videos").doc(this.id)
-            }
-        });
-    }
-
-    add_review(review_str) {
-        review = new Review(review_str);
-        this.reviews.push(review);
-        update();
     }
 
     is_video_there(url) {
@@ -71,15 +69,16 @@ class Video {
     }    
 }
 
-class User {
+class Users {
     constructor(uname) {
         this.uname = uname;
-        this.upvoted_reviews = 0;
-        this.downvoted_reviews = 0;
+        this.upvoted_reviews = null;
+        this.downvoted_reviews = null;
         this.karma = 0;
     }
 }
 
-
-module.exports.Review = Review;
-module.exports.Video = Video;
+let report = new Reports();
+let video = new Videos();
+module.exports.reports = report;
+module.exports.videos = video;
