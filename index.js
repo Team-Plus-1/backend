@@ -17,8 +17,41 @@ function upvote() {
 }
 
 /*
-JSON STRUCTURE
+JSON STRUCTURES requests that can be made to /api
 
+{
+    "action" : "check_website_reported",
+    "url": "http://<url>"
+} => {
+    "reply" : true/false
+}
+
+{
+    "action": "add_report",
+    "url": "http://<url>",
+    "report_string": "report" 
+}
+
+{
+    "action": "get_reports",
+    "url": "http://<url>"
+} => {
+    "video_id": id
+}
+
+{
+    "action": "upvote_report",
+    "video_id": video_id,
+    "report_id": report_id,
+    "user_name": username
+}
+
+{
+    "action": "downvote_report",
+    "video_id": video_id,
+    "report_id": report_id,
+    "user_name": username
+}
 */
 
 app.get('/api', (req, res) => {
