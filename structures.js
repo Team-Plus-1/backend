@@ -57,40 +57,41 @@ class Videos {
         });
     }
 
-    is_video_there(url) {
-        this.get_video_id(url);
-        if (this.url_is_present) {
-            return [true, this.id];
-        } else {
-            return [false, null];
-        }
-    }
-    
-    get_video_id(url) {
-            let a = firestore_client.db.collection("videos").get().then(snapshot => {
-            snapshot.docs.forEach(video => {
+    async is_video_there(url, callback) {
+        let snapshot = await firestore_client.db.collection("videos").get();
+        let found = false;
+        let docs = await snapshot.docs;
+        await docs.forEach((video) => { 
                 if (video.data()["url"] == url) {
-                    let video_id = video.id;
-                    this.id = video_id;
-                    this.url_is_present = true;
+                    console.log(`found ${video.id}`);
+                    callback(true, video.id);
+                    found = true;
                 }
-            });
         });
-        return this;
+        if (!found) {
+            console.log('not found');
+            callback(false, null);
+        }
     }
 
     get_reports(video_id, callback) {
-        reports = [];
-        firestore_client.db.collection("videos").doc(video_id)
-        .collection("reports").get().then(snapshot => {
-            snapshot.docs.forEach(report => {
-                let report_string = report.data()['report_string'];
-                reports.push(report_string);
+        let reports = [];
+        firestore_client.db
+            .collection("videos")
+            .doc(video_id)
+            .collection("reports")
+            .get()
+            .then((snapshot) => {
+                snapshot.docs.forEach((report) => {
+                    let report_string = report.data()["report_string"];
+                    reports.push(report_string);
+                });
+                console.log(reports);
+                callback(reports);
             });
-            console.log(reports);
-            callback(reports);
-        });
+
     }
+    
 }
 
 class Users {
@@ -100,6 +101,10 @@ class Users {
         this.downvoted_reviews = null;
         this.karma = 0;
     }
+}
+
+async function name() {
+    
 }
 
 let report = new Reports();

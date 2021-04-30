@@ -64,23 +64,38 @@ JSON STRUCTURES requests that can be made to /api
 app.get('/api/check', (req, res) => {
     const url = req.query.url;
     console.log(`checking ${url}`);
-    let response = videos.is_video_there(url);
-    let url_is_there = response[0];
-    let id = response[1];
-    if (url_is_there) {
-        videos.get_reports(id, (reports) => {
-            console.log(reports);
+    let response = videos.is_video_there(url, (is_there, id) => {
+        console.log(is_there, id);
+        if (is_there) {
+            videos.get_reports(id, (reports) => {
+                console.log(reports);
+                res.json({
+                    "reply": true,
+                    "data": reports
+                });
+            });    
+        } else {
             res.json({
-                "reply": true,
-                "data": reports
-            });
-        });
+                "reply": false,
+                "data": null
+            });    
+        }
+
+    });
+});
+
+app.post('/api/vote', (req, res) => {
+    const url = req.query.url;
+    const report_id = req.query.reportId;
+    const score = req.query.score;
+    if (score == +1) {
+        let vote_fn = reports.upvote;
     } else {
-        res.json({
-            "reply": false,
-            "data": null
-        });
+        let vote_fn = reports.downvote;
     }
+
+    let video_id = videos.is_video_there(url);
+    vote_fn(video_id, report_id);
 });
 
 app.get('/test', (req, res) => {
