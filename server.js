@@ -50,7 +50,7 @@ app.post("/api/reports", (req, res) => {
             res.json({
                 reply: false,
                 data: null,
-            });.status(500)
+            });
         }
     });
 });
