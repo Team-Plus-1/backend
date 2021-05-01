@@ -150,17 +150,34 @@ class Videos {
 }
 
 class Users {
-    constructor(uname) {
-        this.uname = uname;
-        this.upvoted_reviews = null;
-        this.downvoted_reviews = null;
-        this.karma = 0;
+    async is_user_there(email_id, callback) {
+        let snapshot = await firestore_client.db.collection("users").get();
+        let found = false;
+        let docs = snapshot.docs;
+        await docs.forEach((user) => {
+            if (user.data()["emailId"] == email_id) {
+                console.log(`found user ${user.id}`);
+                found = true;
+                callback(true, user.id);
+            }
+        });
+        if (!found) {
+            console.log("not found");
+            callback(false, null);
+        }
+    }
+// collection = upvoted_reports || downvoted_reports
+    add_vote(user_id, collection, video_id, report_id) {
+        firestore_client.collection("users").doc(user_id).collection(collection).add({
+            video_id: video_id,
+            report_id: report_id
+        });
     }
 }
 
-async function name() {}
-
 let report = new Reports();
 let video = new Videos();
+let user = new Users();
+module.exports.users = user;
 module.exports.reports = report;
 module.exports.videos = video;
