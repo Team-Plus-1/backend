@@ -97,47 +97,53 @@ app.post("/api/vote", (req, res) => {
         });
     }
 
-    videos.is_video_there(url, (_is_there, video_id) => {
-        console.log("Video Found", url);
-        if (score === 1) {
-            reports.upvote(
-                video_id,
-                report_id,
-                () => {
-                    // Success Callback
-                    res.status(200).json({ message: "Successfully Upvoted" });
-                },
-                (error) => {
-                    // Error Callback
-                    console.log(error);
-                    console.log(error.message);
-                    res.status(500);
-                }
-            );
-        } else if (score === -1) {
-            reports.downvote(
-                video_id,
-                report_id,
-                () => {
-                    // Success Callback
-                    res.status(200).json({ message: "Successfully Downvoted" });
-                },
-                (error) => {
-                    // Error Callback
-                    console.log(error);
-                    console.log(error.message);
-                    res.status(500);
-                }
-            );
+    videos.is_video_there(url, (is_there, video_id) => {
+        if (is_there) {
+            console.log("Video Found", url);
+            if (score === 1) {
+                reports.upvote(
+                    video_id,
+                    report_id,
+                    () => {
+                        // Success Callback
+                        res.status(200).json({
+                            message: "Successfully Upvoted",
+                        });
+                    },
+                    (error) => {
+                        // Error Callback
+                        console.log(error);
+                        res.status(500).json({ message: error.message });
+                    }
+                );
+            } else if (score === -1) {
+                reports.downvote(
+                    video_id,
+                    report_id,
+                    () => {
+                        // Success Callback
+                        res.status(200).json({
+                            message: "Successfully Downvoted",
+                        });
+                    },
+                    (error) => {
+                        // Error Callback
+                        console.log(error);
+                        res.status(500).json({ message: error.message });
+                    }
+                );
+            } else {
+                res.status(400).json({
+                    message: "Invalid Score. Score should be +1/-1",
+                });
+            }
         } else {
-            res.status(400).json({
-                message: "Invalid Score. Score should be +1/-1",
-            });
+            res.status(400).json({ message: "No Such Video found" });
         }
     });
 });
 
-app.post("/api/report", (req, _res) => {
+app.post("/api/report", (req, res) => {
     /*{
         url: url,
         report_string: report_string,
@@ -165,11 +171,41 @@ app.post("/api/report", (req, _res) => {
     }
     videos.is_video_there(url, (is_present, video_id) => {
         if (is_present) {
-            reports.add_report(video_id, report_string);
+            reports.add_report(
+                video_id,
+                report_string,
+                categories,
+                () => {
+                    res.status(200).json({
+                        message: "Successfully added report",
+                    });
+                },
+                (error) => {
+                    console.log(error);
+                    res.status(500).json({ message: error.message });
+                }
+            );
         } else {
             videos.add_video(url);
-            videos.is_video_there(url, (_is_present, video_id) => {
-                reports.add_report(video_id, report_string);
+            videos.is_video_there(url, (is_present, video_id) => {
+                if (is_present) {
+                    reports.add_report(
+                        video_id,
+                        report_string,
+                        categories,
+                        () => {
+                            res.status(200).json({
+                                message: "Successfully added report",
+                            });
+                        },
+                        (error) => {
+                            console.log(error);
+                            res.status(500).json({ message: error.message });
+                        }
+                    );
+                } else {
+                    res.status(500).json({ message: "Unable to add video" });
+                }
             });
         }
     });

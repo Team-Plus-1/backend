@@ -1,7 +1,7 @@
 const firestore_client = require("./firestore_client");
 
 class Reports {
-    add_report(video_id, report) {
+    add_report(video_id, report, categories, success_callback, error_callback) {
         firestore_client.db
             .collection("videos")
             .doc(video_id)
@@ -10,14 +10,10 @@ class Reports {
                 report_string: report,
                 num_upvotes: 0,
                 num_downvotes: 0,
+                categories: categories,
             })
-            .then((docRef) => {
-                console.log(docRef.id);
-                return docRef.id;
-            })
-            .catch((error) => {
-                console.log("error while adding video ", error);
-            });
+            .then(success_callback)
+            .catch(error_callback);
     }
 
     get_report(video_id, report_id) {
@@ -42,6 +38,14 @@ class Reports {
                 .get()
                 .then(async (doc) => {
                     let current_data = await doc.data();
+                    if (current_data === undefined) {
+                        try {
+                            console.log(current_data.num_upvotes);
+                        } catch (error) {
+                            error_callback(error);
+                        }
+                        return;
+                    }
                     current_data.num_upvotes += 1;
                     firestore_client.db
                         .collection("videos")
@@ -69,6 +73,14 @@ class Reports {
                 .get()
                 .then(async (doc) => {
                     let current_data = await doc.data();
+                    if (current_data === undefined) {
+                        try {
+                            console.log(current_data.num_upvotes);
+                        } catch (error) {
+                            error_callback(error);
+                        }
+                        return;
+                    }
                     current_data.num_downvotes += 1;
                     firestore_client.db
                         .collection("videos")
@@ -78,30 +90,12 @@ class Reports {
                         .set(current_data)
                         .then(success_callback)
                         .catch((error) => {
-                            console.log(error);
+                            error_callback(error);
                         });
                 });
         } catch (error) {
-            console.log(error);
-            console.log(error.message);
             error_callback(error);
         }
-        // let current_report = firestore_client.db
-        //     .collection("videos")
-        //     .doc(video_id)
-        //     .collection("reports")
-        //     .doc(report_id)
-        //     .get()
-        //     .then((doc) => {
-        //         let current_data = doc.data();
-        //         current_data.num_downvotes += 1;
-        //         let new_report = firestore_client.db
-        //             .collection("videos")
-        //             .doc(video_id)
-        //             .collection("reports")
-        //             .doc(report_id)
-        //             .set(current_data);
-        //     });
     }
 }
 
