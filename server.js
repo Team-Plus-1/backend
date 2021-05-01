@@ -1,11 +1,12 @@
 const express = require("express");
 const firestore_client = require("./firestore_client");
 const structures = require("./structures");
-const bodyParser = require('body-parser');
+const bodyParser = require("body-parser");
 
 const app = express();
-const port = 3000;
-app.use(bodyParser.urlencoded({ extended: true }));
+const port = process.env.PORT || 5000;
+// app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 
 let videos = structures.videos;
 let reports = structures.reports;
@@ -51,7 +52,7 @@ JSON STRUCTURES requests that can be made to /api
 }
 */
 
-app.get('/api/check', (req, res) => {
+app.get("/api/check", (req, res) => {
     const url = req.query.url;
     console.log(`checking ${url}`);
     let response = videos.is_video_there(url, (is_there, id) => {
@@ -60,42 +61,108 @@ app.get('/api/check', (req, res) => {
             videos.get_reports(id, (reports) => {
                 console.log(reports);
                 res.json({
-                    "reply": true,
-                    "data": reports
+                    reply: true,
+                    data: reports,
                 });
-            });    
+            });
         } else {
             res.json({
-                "reply": false,
-                "data": null
-            });    
+                reply: false,
+                data: null,
+            });
         }
-
     });
 });
 
-app.post('/api/vote', (req, _res) => {
-    const url = req.query.url;
-    const report_id = req.query.reportId;
-    const score = req.query.score;
+app.post("/api/vote", (req, res) => {
+    let url, report_id, score;
+    try {
+        console.log(req.body);
+        url = req.body.url;
+        report_id = req.body.reportId;
+        score = req.body.score;
+        if (
+            url === undefined ||
+            report_id === undefined ||
+            score === undefined
+        ) {
+            res.status(400).json({
+                message: "Ensure that body has all required parameters",
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({
+            message: "Ensure that body has all required parameters",
+        });
+    }
 
-    let video_id = videos.is_video_there(url, (_is_there, video_id) => {
-        if (score == +1) {
-            reports.upvote(video_id, report_id);
+    videos.is_video_there(url, (_is_there, video_id) => {
+        console.log("Video Found", url);
+        if (score === 1) {
+            reports.upvote(
+                video_id,
+                report_id,
+                () => {
+                    // Success Callback
+                    res.status(200).json({ message: "Successfully Upvoted" });
+                },
+                (error) => {
+                    // Error Callback
+                    console.log(error);
+                    console.log(error.message);
+                    res.status(500);
+                }
+            );
+        } else if (score === -1) {
+            reports.downvote(
+                video_id,
+                report_id,
+                () => {
+                    // Success Callback
+                    res.status(200).json({ message: "Successfully Downvoted" });
+                },
+                (error) => {
+                    // Error Callback
+                    console.log(error);
+                    console.log(error.message);
+                    res.status(500);
+                }
+            );
         } else {
-            reports.downvote(video_id, report_id);
+            res.status(400).json({
+                message: "Invalid Score. Score should be +1/-1",
+            });
         }
     });
 });
 
-app.post('/api/report', (req, _res) => {
+app.post("/api/report", (req, _res) => {
     /*{
         url: url,
         report_string: report_string,
     }*/
-    console.log(req.body);
-    let url = req.body.url;
-    let report_string = req.body.report_string;
+    let url, report_string, categories;
+    try {
+        console.log(req.body);
+        url = req.body.url;
+        report_string = req.body.report_string;
+        categories = req.body.categories;
+        if (
+            url === undefined ||
+            report_string === undefined ||
+            categories === undefined
+        ) {
+            res.status(400).json({
+                message: "Ensure that body has all required parameters",
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({
+            message: "Ensure that body has all required parameters",
+        });
+    }
     videos.is_video_there(url, (is_present, video_id) => {
         if (is_present) {
             reports.add_report(video_id, report_string);
@@ -109,6 +176,5 @@ app.post('/api/report', (req, _res) => {
 });
 
 app.listen(port, () => {
-    console.log(`App listening at http://localhost:${port}`)
+    console.log(`App listening at http://localhost:${port}`);
 });
-
