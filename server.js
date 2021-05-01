@@ -1,7 +1,5 @@
 const express = require("express");
-const firestore_client = require("./firestore_client");
 const structures = require("./structures");
-const bodyParser = require("body-parser");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -52,19 +50,36 @@ JSON STRUCTURES requests that can be made to /api
 }
 */
 
-app.get("/api/check", (req, res) => {
+app.get("/api/reports", (req, res) => {
     const url = req.query.url;
     console.log(`checking ${url}`);
-    let response = videos.is_video_there(url, (is_there, id) => {
+    videos.is_video_there(url, (is_there, id) => {
         console.log(is_there, id);
         if (is_there) {
-            videos.get_reports(id, (reports) => {
-                console.log(reports);
-                res.json({
-                    reply: true,
-                    data: reports,
-                });
-            });
+            videos.get_reports(
+                id,
+                (reports) => {
+                    console.log(reports);
+                    if (reports.length > 0) {
+                        res.status(200).json({
+                            reply: true,
+                            data: reports,
+                        });
+                    } else {
+                        res.status(400).json({
+                            reply: false,
+                            data: null,
+                        });
+                    }
+                },
+                (error) => {
+                    console.log(error);
+                    res.status(500).json({
+                        reply: false,
+                        data: null,
+                    });
+                }
+            );
         } else {
             res.json({
                 reply: false,
@@ -210,7 +225,6 @@ app.post("/api/report", (req, res) => {
         }
     });
 });
-
 app.listen(port, () => {
     console.log(`App listening at http://localhost:${port}`);
 });

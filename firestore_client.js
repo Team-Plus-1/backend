@@ -1,16 +1,16 @@
+require("dotenv").config();
 const firebase = require("firebase");
 require("firebase/firestore");
 
 const firebaseConfig = {
-    apiKey: "AIzaSyArkeTpWLAbgz6F8t1M9aFRzraMpf8AUfU",
-    authDomain: "choice-8caa5.firebaseapp.com",
-    projectId: "choice-8caa5",
-    storageBucket: "choice-8caa5.appspot.com",
-    messagingSenderId: "571472487077",
-    appId: "1:571472487077:web:86d777b80615bdedbaa34c",
-    measurementId: "G-SYZ6HPB44L"
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID,
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID,
 };
-
 
 let firebase_ = firebase.initializeApp(firebaseConfig);
 let db = firebase_.firestore();

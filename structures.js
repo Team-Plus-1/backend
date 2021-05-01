@@ -132,7 +132,7 @@ class Videos {
         }
     }
 
-    get_reports(video_id, callback) {
+    get_reports(video_id, success_callback, error_callback) {
         let reports = [];
         firestore_client.db
             .collection("videos")
@@ -141,12 +141,11 @@ class Videos {
             .get()
             .then((snapshot) => {
                 snapshot.docs.forEach((report) => {
-                    let report_string = report.data()["report_string"];
-                    reports.push(report_string);
+                    reports.push({ ...report.data(), reportId: report.id });
                 });
-                console.log(reports);
-                callback(reports);
-            });
+                success_callback(reports);
+            })
+            .catch(error_callback);
     }
 }
 
