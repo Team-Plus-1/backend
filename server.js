@@ -1,10 +1,12 @@
 const express = require("express");
 const structures = require("./structures");
-
+const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
 app.use(express.json());
-app.use(allowCrossDomain);
+
+app.use(cors()); 
+
 
 let users = structures.users;
 let videos = structures.videos;
