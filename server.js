@@ -23,7 +23,7 @@ app.post("/api/reports", (req, res) => {
                 (reports) => {
                     console.log(reports);
                     if (reports.length > 0) {
-                        res.status(200).json({
+                        res.json({
                             reply: true,
                             data: reports,
                         });
