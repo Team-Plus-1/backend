@@ -62,7 +62,7 @@ class Videos {
         let found = false;
         let docs = await snapshot.docs;
         await docs.forEach((video) => { 
-                if (video.data()["url"] == url) {
+                if (url.includes(video.data()["url"])) {
                     console.log(`found ${video.id}`);
                     callback(true, video.id);
                     found = true;

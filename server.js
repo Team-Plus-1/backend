@@ -1,27 +1,17 @@
 const express = require("express");
 const firestore_client = require("./firestore_client");
 const structures = require("./structures");
+const bodyParser = require('body-parser');
 
 const app = express();
 const port = 3000;
+app.use(bodyParser.urlencoded({ extended: true }));
 
 let videos = structures.videos;
 let reports = structures.reports;
 
-function save_new() {
-    let new_vid = structures.videos;
-    new_vid.add_video("url");
-}
-
-function upvote() {
-    let new_report = structures.reports;
-    new_report.downvote("FkUnPFruRMSaLaX2s1k0", "egJbMbtolXa6NZ92aVZG");
-    console.log(new_report);
-}
-
 /*
 JSON STRUCTURES requests that can be made to /api
-
 {
     "action" : "check_if_video_reported",
     "url": "http://<url>"
@@ -84,40 +74,41 @@ app.get('/api/check', (req, res) => {
     });
 });
 
-app.post('/api/vote', (req, res) => {
+app.post('/api/vote', (req, _res) => {
     const url = req.query.url;
     const report_id = req.query.reportId;
     const score = req.query.score;
-    if (score == +1) {
-        let vote_fn = reports.upvote;
-    } else {
-        let vote_fn = reports.downvote;
-    }
 
-    let video_id = videos.is_video_there(url);
-    vote_fn(video_id, report_id);
+    let video_id = videos.is_video_there(url, (_is_there, video_id) => {
+        if (score == +1) {
+            reports.upvote(video_id, report_id);
+        } else {
+            reports.downvote(video_id, report_id);
+        }
+    });
 });
 
-app.get('/test', (req, res) => {
-    let response = videos.is_video_there("url");
-
-    if (response[0]) {
-        res.json({"it's there": response[1]}); 
-    }
-    res.json({"helddo": "world"});
+app.post('/api/report', (req, _res) => {
+    /*{
+        url: url,
+        report_string: report_string,
+    }*/
+    console.log(req.body);
+    let url = req.body.url;
+    let report_string = req.body.report_string;
+    videos.is_video_there(url, (is_present, video_id) => {
+        if (is_present) {
+            reports.add_report(video_id, report_string);
+        } else {
+            videos.add_video(url);
+            videos.is_video_there(url, (_is_present, video_id) => {
+                reports.add_report(video_id, report_string);
+            });
+        }
+    });
 });
 
-
-app.get('/upvote', (req, res) => {
-    upvote();
-    res.send("upvoted");
-});
-
-app.get('/update', (req, res) => {
-    save_new();
-    res.send("updated");
-});
-  
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`App listening at http://localhost:${port}`)
 });
+
