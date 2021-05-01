@@ -238,7 +238,7 @@ class Users {
             let downvoted_docs = await downvoted_reports.docs;
             await downvoted_docs.forEach((vote) => {
                 if (vote.data()['video_id'] == video_id && vote.data()['report_id'] == report_id) {
-                    found = true;
+                    found = true;;
                     console.log(`found downvote ${vote.id}`);
                     callback(true, "downvoted_reports", vote.id);
                 }
