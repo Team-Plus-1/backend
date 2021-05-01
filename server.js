@@ -4,6 +4,7 @@ const structures = require("./structures");
 const app = express();
 const port = process.env.PORT || 5000;
 app.use(express.json());
+app.use(allowCrossDomain);
 
 let users = structures.users;
 let videos = structures.videos;
@@ -63,7 +64,7 @@ app.post("/api/vote", (req, res) => {
             email_id === undefined
         ) {
             res.status(400).json({
-                message: "Ensure that body has all required parameters",
+                message: "Ensure that body has all required parremote -a ch0ice-appameters",
             });
         }
     } catch (error) {
