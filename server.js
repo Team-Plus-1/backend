@@ -180,20 +180,15 @@ app.post('/api/delete_report', (req, res) => {
     res.json({message: "removed review"});
 });
 
-app.get('/api/checkthreshold', (req, res) => {
+app.get('/api/checkthreshold', (_req, res) => {
     let all_videos = [];
     let reports_above_threshold = [];
-    let num_videos, counter;
     videos.get_videos((video) => {
         let url = video.data()['url'];
         all_videos.push([url, video.id]);
         num_videos = all_videos.length;
-        counter = 0;
     }).then(async () => {
-        console.log(`There are ${num_videos} videos`);
-        console.log("initial counter", counter);
         for(data of all_videos) {
-            counter += 1;
             let url = data[0];
             let video_id = data[1];
             videos.get_reports(video_id, (all_reports) => {
@@ -206,22 +201,18 @@ app.get('/api/checkthreshold', (req, res) => {
                          reports.remove_report(video_id, report_id);
                     } else if (downvotes > upvotes && downvotes > 5) {
                         console.log(`got fishy report for url ${url}`);
-                         reports_above_threshold.push({
+                        reports_above_threshold.push({
                             url: url,
                             report_string: report_string,
                             num_upvotes: upvotes,
                             num_downvotes: downvotes
                         });
+                        console.log(`deleting review ${report_string}`);
+                        reviews.remove_report(video_id, report_id);   
                     }
                 }
             });
-            if (counter == num_videos) {
-                console.log("counter number", counter);
-                console.log("on the last count sending reports", reports_above_threshold);
-                res.json({reports: reports_above_threshold});    
-            }
         }
-
     });
 });
 
