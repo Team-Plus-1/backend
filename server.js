@@ -208,12 +208,17 @@ app.get('/api/checkthreshold', (_req, res) => {
                             num_downvotes: downvotes
                         });
                         console.log(`deleting review ${report_string}`);
-                        reviews.remove_report(video_id, report_id);   
+                        reports.remove_report(video_id, report_id); 
                     }
                 }
             });
         }
     });
+    res.json(
+        {
+            message: "Deleting"
+        }
+    );
 });
 
 app.get('/api/uservoted', (req, res) => {
