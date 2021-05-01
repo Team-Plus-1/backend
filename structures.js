@@ -212,7 +212,7 @@ class Videos {
             .then((snapshot) => {
                 snapshot.docs.forEach((report) => {
                     try {
-                        let report_data = report.data();
+                        let report_data = {...report.data()};
                         reports.push({report_data , reportId: report.id });
                     } catch(error) {
 
