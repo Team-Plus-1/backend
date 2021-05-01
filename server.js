@@ -24,13 +24,14 @@ app.post("/api/reports", (req, res) => {
                     console.log(reports);
                     if (reports.length > 0) {
                         console.log("sending stuff");
-                        res.status(200).json({
+                        res.json({
                             reply: true,
                             data: reports,
                         });
+                        return true;
                     } else {
                         console.log("reports.len = 0, so not sending anything");
-                        res.status(400).json({
+                        res.json({
                             reply: false,
                             data: null,
                         });
@@ -38,7 +39,7 @@ app.post("/api/reports", (req, res) => {
                 },
                 (error) => {
                     console.error("ran into some error", error);
-                    res.status(500).json({
+                    res.json({
                         reply: false,
                         data: null,
                     });
@@ -49,7 +50,7 @@ app.post("/api/reports", (req, res) => {
             res.json({
                 reply: false,
                 data: null,
-            });
+            });.status(500)
         }
     });
 });
@@ -68,13 +69,13 @@ app.post("/api/vote", (req, res) => {
             score === undefined ||
             email_id === undefined
         ) {
-            res.status(400).json({
+            res.json({
                 message: "Ensure that body has all required parremote -a ch0ice-appameters",
             });
         }
     } catch (error) {
         console.log(error);
-        res.status(400).json({
+        res.json({
             message: "Ensure that body has all required parameters",
         });
     }
@@ -93,14 +94,14 @@ app.post("/api/vote", (req, res) => {
                                     report_id,
                                     () => {
                                         // Success Callback
-                                        res.status(200).json({
+                                        res.json({
                                             message: "Successfully Upvoted",
                                         });
                                     },
                                     (error) => {
                                         // Error Callback
                                         console.log(error);
-                                        res.status(500).json({ message: error.message });
+                                        res.json({ message: error.message });
                                     }
                                 );
                             } else if (score === -1) {
@@ -110,25 +111,25 @@ app.post("/api/vote", (req, res) => {
                                     report_id,
                                     () => {
                                         // Success Callback
-                                        res.status(200).json({
+                                        res.json({
                                             message: "Successfully Downvoted",
                                         });
                                     },
                                     (error) => {
                                         // Error Callback
                                         console.log(error);
-                                        res.status(500).json({ message: error.message });
+                                        res.json({ message: error.message });
                                     }
                                 );
                             } else {
-                                res.status(400).json({
+                                res.json({
                                     message: "Invalid Score. Score should be +1/-1",
                                 });
                             }                
                         } else if ((vote_collection == "upvoted_reports" && score === +1) ||
                                     (vote_collection == "downvoted_reports" && score === -1)) {
                                         console.log(`was already ${vote_collection}`);
-                                        res.status(500).json({message: "already voted on this"});
+                                        res.json({message: "already voted on this"});
                         } else {
                             if (vote_collection == "downvoted_reports") {
                                 console.log("was downvoted, upvoting now");
@@ -143,7 +144,7 @@ app.post("/api/vote", (req, res) => {
                                     console.error("couldn't upvote", error);
                                 });
                                 users.add_vote(user_id, "upvoted_reports", video_id, report_id);
-                                res.status(200).json({message: "changed vote to upvote"});
+                                res.json({message: "changed vote to upvote"});
                             } else {
                                 console.log("was upvoted, downvoting now");
                                 reports.downvote(video_id, report_id, () => {
@@ -159,14 +160,14 @@ app.post("/api/vote", (req, res) => {
                                 });
                                 users.add_vote(user_id, "downvoted_reports", video_id, report_id);
                                 console.log("added vote in users database");
-                                res.status(200).json({message: "changed vote to downvote"});
+                                res.json({message: "changed vote to downvote"});
                             }
                         }
                     });
                 }
             });
         } else {
-            res.status(400).json({ message: "No Such Video found" });
+            res.json({ message: "No Such Video found" });
         }
     });
 });
@@ -209,13 +210,13 @@ app.post("/api/report", (req, res) => {
             report_string === undefined ||
             categories === undefined
         ) {
-            res.status(400).json({
+            res.json({
                 message: "Ensure that body has all required parameters",
             });
         }
     } catch (error) {
         console.log(error);
-        res.status(400).json({
+        res.json({
             message: "Ensure that body has all required parameters",
         });
     }
@@ -226,13 +227,13 @@ app.post("/api/report", (req, res) => {
                 report_string,
                 categories,
                 () => {
-                    res.status(200).json({
+                    res.json({
                         message: "Successfully added report",
                     });
                 },
                 (error) => {
                     console.log(error);
-                    res.status(500).json({ message: error.message });
+                    res.json({ message: error.message });
                 }
             );
         } else {
@@ -244,17 +245,17 @@ app.post("/api/report", (req, res) => {
                         report_string,
                         categories,
                         () => {
-                            res.status(200).json({
+                            res.json({
                                 message: "Successfully added report",
                             });
                         },
                         (error) => {
                             console.log(error);
-                            res.status(500).json({ message: error.message });
+                            res.json({ message: error.message });
                         }
                     );
                 } else {
-                    res.status(500).json({ message: "Unable to add video" });
+                    res.json({ message: "Unable to add video" });
                 }
             });
         }
