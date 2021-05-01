@@ -1,6 +1,13 @@
 const firestore_client = require("./firestore_client");
 
 class Reports {
+    remove_report(video_id, report_id) {
+        firestore_client.db.collection("videos")
+        .doc(video_id)
+        .collection("reports")
+        .doc(report_id).delete();
+    }
+
     add_report(video_id, report, categories, success_callback, error_callback) {
         firestore_client.db
             .collection("videos")
@@ -183,6 +190,14 @@ class Videos {
             .catch((error) => {
                 console.log("error while adding video ", error);
             });
+    }
+
+    async get_videos(callback) {
+        let snapshot = await firestore_client.db.collection("videos").get();
+        let docs = await snapshot.docs;
+        await docs.forEach((video) => {
+            callback(video);
+        });
     }
 
     async is_video_there(url, callback) {

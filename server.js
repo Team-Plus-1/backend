@@ -174,8 +174,16 @@ app.post("/api/vote", (req, res) => {
 
 
 app.get('/api/checkthreshold', (req, res) => {
-    let url = req.query.url;
-    let reports = videos.is_video_there(url, (_is_video_there, video_id) => {
+    let all_videos = []
+    videos.get_videos((video) => {
+        let url = video.data()['url'];
+        console.log(url);
+        all_videos.push(video.data());
+    }).then(() => {
+        res.json({videos: all_videos});
+    });
+
+/*    let reports = videos.is_video_there(url, (_is_video_there, video_id) => {
         videos.get_reports(video_id, (reports) => {
             console.log(reports[0]['report_data']);
             res.json({
@@ -185,7 +193,7 @@ app.get('/api/checkthreshold', (req, res) => {
         }, () => {
             console.error("ran into an error");
         });
-    });
+    });*/
 });
 
 app.get('/api/uservoted', (req, res) => {
