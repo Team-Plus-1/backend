@@ -12,7 +12,7 @@ let users = structures.users;
 let videos = structures.videos;
 let reports = structures.reports;
 
-app.get("/api/reports", (req, res) => {
+app.post("/api/reports", (req, res) => {
     const url = req.body.url;
     console.log(`checking ${url}`);
     videos.is_video_there(url, (is_there, id) => {
