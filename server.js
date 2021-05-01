@@ -172,49 +172,81 @@ app.post("/api/vote", (req, res) => {
     });
 });
 
+app.post('/api/delete_report', (req, res) => {
+    let video_id = req.body.video_id;
+    let report_id = req.body.report_id;
+    reports.remove_report(video_id, report_id);
+
+    res.json({message: "removed review"});
+});
 
 app.get('/api/checkthreshold', (req, res) => {
-    let all_videos = []
+    let all_videos = [];
+    let reports_above_threshold = [];
+    let num_videos, counter;
     videos.get_videos((video) => {
         let url = video.data()['url'];
-        console.log(url);
-        all_videos.push(video.data());
-    }).then(() => {
-        res.json({videos: all_videos});
-    });
-
-/*    let reports = videos.is_video_there(url, (_is_video_there, video_id) => {
-        videos.get_reports(video_id, (reports) => {
-            console.log(reports[0]['report_data']);
-            res.json({
-                num_upvotes: reports[0]['report_data']['num_upvotes'],
-                num_downvotes: reports[0]['report_data']['num_downvotes']
+        all_videos.push([url, video.id]);
+        num_videos = all_videos.length;
+        counter = 0;
+    }).then(async () => {
+        console.log(`There are ${num_videos} videos`);
+        console.log("initial counter", counter);
+        for(data of all_videos) {
+            counter += 1;
+            let url = data[0];
+            let video_id = data[1];
+            videos.get_reports(video_id, (all_reports) => {
+                for(report_data of all_reports) {
+                    let report_id = report_data["reportId"];
+                    let upvotes = report_data["report_data"]["num_upvotes"];
+                    let downvotes = report_data["report_data"]["num_downvotes"];
+                    let report_string = report_data["report_data"]["report_string"];
+                    if (upvotes === undefined || downvotes === undefined) {
+                         reports.remove_report(video_id, report_id);
+                    } else if (downvotes > upvotes && downvotes > 5) {
+                        console.log(`got fishy report for url ${url}`);
+                         reports_above_threshold.push({
+                            url: url,
+                            report_string: report_string,
+                            num_upvotes: upvotes,
+                            num_downvotes: downvotes
+                        });
+                    }
+                }
             });
-        }, () => {
-            console.error("ran into an error");
-        });
-    });*/
+            if (counter == num_videos) {
+                console.log("counter number", counter);
+                console.log("on the last count sending reports", reports_above_threshold);
+                res.json({reports: reports_above_threshold});    
+            }
+        }
+
+    });
 });
 
 app.get('/api/uservoted', (req, res) => {
     let user_email = req.query.email;
-    let video_id = req.query.video_id;
+    let url = req.query.url;
     let report_id = req.query.report_id;
-    users.is_user_there(user_email, (_user_is_there, user_id) => {
-        users.is_report_voted_on(user_id, video_id, report_id, (vote_exists, collection, _vote_id) => {
-            if (vote_exists) {
-                res.json({
-                    voted: true,
-                    collection: collection
-                });
-            } else {
-                res.json({
-                    voted: false,
-                    collection: null
-                });
-            }
+
+    videos.is_video_there(url, (_is_video_there, video_id) => {
+        users.is_user_there(user_email, (_user_is_there, user_id) => {
+            users.is_report_voted_on(user_id, video_id, report_id, (vote_exists, collection, _vote_id) => {
+                if (vote_exists) {
+                    res.json({
+                        voted: true,
+                        collection: collection
+                    });
+                } else {
+                    res.json({
+                        voted: false,
+                        collection: null
+                    });
+                }
+            });
         });
-    });
+    })
 });
 
 app.post("/api/report", (req, res) => {

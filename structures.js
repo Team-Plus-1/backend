@@ -235,7 +235,7 @@ class Videos {
                 });
                 success_callback(reports);
             })
-            .catch(error_callback());
+            .catch(error_callback);
     }
 }
 
