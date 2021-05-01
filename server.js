@@ -23,11 +23,13 @@ app.post("/api/reports", (req, res) => {
                 (reports) => {
                     console.log(reports);
                     if (reports.length > 0) {
-                        res.json({
+                        console.log("sending stuff");
+                        res.status(200).json({
                             reply: true,
                             data: reports,
                         });
                     } else {
+                        console.log("reports.len = 0, so not sending anything");
                         res.status(400).json({
                             reply: false,
                             data: null,
@@ -35,7 +37,7 @@ app.post("/api/reports", (req, res) => {
                     }
                 },
                 (error) => {
-                    console.log(error);
+                    console.error("ran into some error", error);
                     res.status(500).json({
                         reply: false,
                         data: null,
@@ -43,6 +45,7 @@ app.post("/api/reports", (req, res) => {
                 }
             );
         } else {
+            console.log("nothing found, seding null");
             res.json({
                 reply: false,
                 data: null,
